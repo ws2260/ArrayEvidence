@@ -309,3 +309,133 @@ Potential future additions include:
 - Optional purpose-scoped downstream module interfaces.
 
 These are not implemented by the current TSV export milestone.
+
+## Immutable evidence bundle integrity and verification
+
+### Bundle format version 1.0.0
+
+`export_evidence_tsv(output_dir, assay_rows, candidate_rows)` publishes
+one immutable directory containing exactly three files:
+
+| File | Purpose |
+| --- | --- |
+| `assay_evidence.tsv` | Versioned assay-level technical evidence |
+| `allele_candidates.tsv` | Versioned VCF allele-candidate provenance |
+| `bundle_manifest.json` | Deterministic integrity metadata |
+
+The TSV column schemas remain at evidence schema version `1.0.0`.
+The bundle format has its own version, also initially `1.0.0`.
+These are distinct version identifiers and may evolve independently.
+
+The export function continues to return the paths of the two TSV files.
+The JSON manifest is an additional member of their containing directory.
+
+### Manifest structure
+
+The JSON manifest contains exactly these top-level keys:
+
+- `bundle_format_version`
+- `evidence_schema_version`
+- `files`
+
+The `files` object contains exactly `assay_evidence.tsv` and
+`allele_candidates.tsv`. Each file entry contains exactly:
+
+- `sha256`: lowercase hexadecimal SHA-256 digest of the exact TSV bytes
+- `size_bytes`: exact number of bytes in the TSV
+- `row_count`: number of TSV data records, excluding the header
+
+The manifest uses UTF-8 JSON, lexicographically sorted object keys,
+compact separators, and exactly one final newline. It does not contain
+timestamps, sample identifiers, participant counts, absolute filesystem
+paths, or inferred reference assembly metadata.
+
+The hashes include TSV headers and line endings. Row counts exclude
+the header and are independent of the number of assays represented
+by the overall study.
+
+### Publication and immutability
+
+The exporter validates and serializes the evidence rows before
+publication. It writes the two TSV files and their manifest into a
+temporary staging directory, then publishes the complete directory
+using a Linux no-replace rename operation.
+
+An existing destination is never intentionally overwritten. A
+publication failure must not expose a partially completed destination
+directory through the normal publication path.
+
+Atomic visibility does not by itself guarantee power-loss durability.
+The exporter does not claim transactional durability across filesystem
+failures, storage-device failures, or unexpected system shutdowns.
+
+The current publication mechanism targets Linux-compatible filesystems,
+including the supported WSL development environment.
+
+### Independent verification
+
+`arrayevidence.bundle_verify.verify_bundle(bundle_dir)` checks an
+existing bundle without requiring the original assay manifest, VCF,
+reference FASTA, or participant-level inputs.
+
+It returns a `BundleVerificationResult` containing:
+
+- `valid`: boolean indicating whether all implemented checks passed
+- `errors`: tuple of diagnostic messages, empty when valid
+
+The verifier checks:
+
+1. The bundle is a directory, not a symbolic link.
+2. Exactly the three required regular files are present, with no
+   symbolic-link members.
+3. The JSON manifest is valid UTF-8, canonical, within the configured
+   manifest-size limit, and free of duplicate object keys.
+4. Bundle and evidence schema versions are supported.
+5. Manifest fields, filenames, metadata types, and SHA-256 syntax
+   conform to the expected contract.
+6. Each TSV's actual SHA-256 digest and byte size match its metadata.
+7. TSV headers match the versioned evidence schemas.
+8. TSV content is valid UTF-8 with the expected tab-delimited column
+   structure, no unsupported quoting, no NUL characters, and the
+   expected final newline.
+9. The number of TSV data records matches `row_count`.
+
+The verifier is read-only. It does not repair files, infer missing
+records, reconstruct assay alleles, or validate biological correctness.
+
+### Scope and limitations
+
+**Integrity is not authenticity.** SHA-256 checksums detect changes
+relative to the supplied manifest, but an actor who can modify both
+the TSV files and manifest can recompute matching checksums. No
+digital signature, trusted timestamp, or external trust anchor is
+provided by this bundle format.
+
+**Integrity is not genotype validity.** A successfully verified bundle
+may still contain incomplete, ambiguous, or incorrect technical
+evidence. Verification does not establish assay sensitivity,
+genotype accuracy, clinical validity, or suitability for downstream
+interpretation.
+
+**Integrity is not authorization.** A verified bundle is not
+automatically approved for publication, transfer, or redistribution.
+Consent, institutional permissions, contractual restrictions, and
+purpose limitations remain independent requirements.
+
+The verifier performs structural and checksum validation of local
+bundles. It is not currently a hardened sandbox for adversarial
+filesystems, concurrent file replacement, or arbitrarily large inputs.
+It does not re-run the full parent-candidate semantic consistency
+checks performed during export.
+
+### Compatibility and future versions
+
+Version `1.0.0` is the initial bundle format contract. Changes to
+manifest fields, serialization, or required files require explicit
+compatibility consideration and appropriate bundle-format versioning.
+
+Changes to assay-level or candidate-level TSV columns are governed
+separately by the evidence schema version.
+
+Unknown versions or unexpected manifest fields are rejected rather
+than silently interpreted.

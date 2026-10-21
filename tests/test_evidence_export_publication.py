@@ -20,6 +20,7 @@ def test_destination_created_during_publication_is_preserved(
         assert sorted(p.name for p in staging.iterdir()) == [
             "allele_candidates.tsv",
             "assay_evidence.tsv",
+            "bundle_manifest.json",
         ]
 
         # Simulate another process creating the destination
@@ -130,4 +131,5 @@ def test_successful_publication_leaves_no_staging_directory(
     assert sorted(p.name for p in destination.iterdir()) == [
         "allele_candidates.tsv",
         "assay_evidence.tsv",
+        "bundle_manifest.json",
     ]

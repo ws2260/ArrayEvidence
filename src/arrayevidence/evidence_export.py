@@ -10,7 +10,9 @@ identifiers and evidence are authorized for the intended output.
 import csv
 import ctypes
 import errno
+import hashlib
 import io
+import json
 import os
 import shutil
 import tempfile
@@ -25,6 +27,51 @@ NULL_TOKEN = "NULL"
 
 ASSAY_FILENAME = "assay_evidence.tsv"
 CANDIDATE_FILENAME = "allele_candidates.tsv"
+BUNDLE_MANIFEST_FILENAME = "bundle_manifest.json"
+BUNDLE_FORMAT_VERSION = "1.0.0"
+
+
+def _render_bundle_manifest(
+    assay_data: bytes,
+    candidate_data: bytes,
+    assay_row_count: int,
+    candidate_row_count: int,
+) -> bytes:
+    """Render deterministic integrity metadata for exact TSV bytes.
+
+    The manifest contains no participant identifiers, timestamps,
+    absolute paths, or inferred reference metadata.
+    """
+    from .evidence_schema import SCHEMA_VERSION
+
+    files = {
+        ASSAY_FILENAME: {
+            "sha256": hashlib.sha256(assay_data).hexdigest(),
+            "size_bytes": len(assay_data),
+            "row_count": assay_row_count,
+        },
+        CANDIDATE_FILENAME: {
+            "sha256": hashlib.sha256(candidate_data).hexdigest(),
+            "size_bytes": len(candidate_data),
+            "row_count": candidate_row_count,
+        },
+    }
+
+    manifest = {
+        "bundle_format_version": BUNDLE_FORMAT_VERSION,
+        "evidence_schema_version": SCHEMA_VERSION,
+        "files": files,
+    }
+
+    return (
+        json.dumps(
+            manifest,
+            sort_keys=True,
+            separators=(",", ":"),
+            ensure_ascii=False,
+        )
+        + "\n"
+    ).encode("utf-8")
 
 
 def _serialize_value(value: object) -> str:
@@ -384,6 +431,13 @@ def export_evidence_tsv(
         candidates,
     )
 
+    manifest_data = _render_bundle_manifest(
+        assay_data,
+        candidate_data,
+        len(assays),
+        len(candidates),
+    )
+
     destination = Path(output_dir)
 
     if destination.exists() or destination.is_symlink():
@@ -410,8 +464,11 @@ def export_evidence_tsv(
     try:
         (staging / ASSAY_FILENAME).write_bytes(assay_data)
         (staging / CANDIDATE_FILENAME).write_bytes(candidate_data)
+        (staging / BUNDLE_MANIFEST_FILENAME).write_bytes(
+            manifest_data
+        )
 
-        # Publish both completed files as one visible directory.
+        # Publish all completed files as one visible directory.
         _publish_directory_no_replace(staging, destination)
 
     finally:

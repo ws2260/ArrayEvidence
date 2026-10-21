@@ -107,4 +107,5 @@ def test_bundle_contains_only_two_expected_files(tmp_path):
     assert sorted(path.name for path in destination.iterdir()) == [
         "allele_candidates.tsv",
         "assay_evidence.tsv",
+        "bundle_manifest.json",
     ]
