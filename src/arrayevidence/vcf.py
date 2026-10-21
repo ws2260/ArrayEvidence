@@ -36,20 +36,75 @@ class VCFRecord:
 
 
 def read_vcf(path: str | Path) -> Iterator[VCFRecord]:
-    """Read genotype records from a single-sample VCF."""
-    path = Path(path)
+    """Read genotype records from a strictly single-sample VCF.
 
+    Require exactly one sample in the #CHROM header. Reject malformed
+    headers and record widths rather than silently selecting a sample.
+    """
+
+    path = Path(path)
     opener = gzip.open if path.suffix == ".gz" else open
+
+    required_columns = (
+        "#CHROM",
+        "POS",
+        "ID",
+        "REF",
+        "ALT",
+        "QUAL",
+        "FILTER",
+        "INFO",
+        "FORMAT",
+    )
+
+    header_seen = False
 
     with opener(path, "rt", encoding="utf-8") as handle:
         for line in handle:
-            if line.startswith("#"):
+            if line.startswith("##"):
+                if header_seen:
+                    raise ValueError(
+                        "Malformed VCF header: metadata after #CHROM"
+                    )
                 continue
 
-            fields = line.rstrip("\n").split("\t")
+            if line.startswith("#"):
+                if header_seen:
+                    raise ValueError(
+                        "Malformed VCF header: duplicate #CHROM"
+                    )
 
-            if len(fields) < 10:
-                raise ValueError("Expected a single-sample VCF record")
+                columns = line.rstrip('\r\n').split('\t')
+
+                if tuple(columns[:9]) != required_columns:
+                    raise ValueError(
+                        "Malformed VCF header: invalid columns"
+                    )
+
+                if len(columns) != 10:
+                    raise ValueError(
+                        "Expected a single-sample VCF header"
+                    )
+
+                if not columns[9].strip():
+                    raise ValueError(
+                        "Malformed VCF header: empty sample name"
+                    )
+
+                header_seen = True
+                continue
+
+            if not header_seen:
+                raise ValueError(
+                    "Missing or malformed VCF header"
+                )
+
+            fields = line.rstrip('\r\n').split('\t')
+
+            if len(fields) != 10:
+                raise ValueError(
+                    "VCF record sample column count mismatch"
+                )
 
             chrom, pos, variant_id, ref, alt = fields[:5]
             format_keys = fields[8].split(":")
@@ -60,8 +115,13 @@ def read_vcf(path: str | Path) -> Iterator[VCFRecord]:
 
             gt_index = format_keys.index("GT")
 
-            if gt_index >= len(sample_values):
-                raise ValueError("VCF record has no genotype value")
+            if (
+                gt_index >= len(sample_values)
+                or not sample_values[gt_index]
+            ):
+                raise ValueError(
+                    "VCF record has no genotype value"
+                )
 
             yield VCFRecord(
                 chrom=chrom,
@@ -71,3 +131,6 @@ def read_vcf(path: str | Path) -> Iterator[VCFRecord]:
                 alts=tuple(alt.split(",")) if alt != "." else (),
                 gt=sample_values[gt_index],
             )
+
+    if not header_seen:
+        raise ValueError("Missing VCF header")
