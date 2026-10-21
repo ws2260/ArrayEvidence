@@ -428,6 +428,49 @@ filesystems, concurrent file replacement, or arbitrarily large inputs.
 It does not re-run the full parent-candidate semantic consistency
 checks performed during export.
 
+### Command-line bundle verification
+
+ArrayEvidence provides a read-only command-line interface for
+verifying previously exported evidence bundles.
+
+For development, install the local package in editable mode:
+
+    python -m pip install --no-deps --no-build-isolation -e .
+
+Verify an evidence bundle:
+
+    arrayevidence verify /path/to/evidence-bundle
+
+Alternatively, invoke the Python module:
+
+    python -m arrayevidence verify /path/to/evidence-bundle
+
+Both commands use the same independent bundle verifier.
+
+Exit codes:
+
+- `0`: verification passed.
+- `1`: verification failed.
+- `2`: invalid command-line arguments.
+
+Successful verification prints:
+
+    PASS: Bundle verification succeeded.
+
+Failed verification prints an error message and diagnostics
+to standard error.
+
+The CLI does not print evidence rows, sample identifiers,
+genotypes, or participant-level results. Diagnostics may
+include bundle filenames and integrity errors.
+
+Verification is read-only. It does not repair files,
+reconcile variants, establish genotype correctness,
+authenticate the bundle, or authorize data redistribution.
+
+The public CLI currently supports verification only.
+Evidence construction and export remain Python API operations.
+
 ### Compatibility and future versions
 
 Version `1.0.0` is the initial bundle format contract. Changes to
