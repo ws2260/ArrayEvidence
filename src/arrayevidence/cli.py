@@ -7,6 +7,12 @@ from collections.abc import Sequence
 import sys
 
 from .bundle_verify import verify_bundle
+from .manifest import read_assays
+from .vcf import read_vcf
+from .fasta_adapter import PysamReferenceReader
+from .reconcile import reconcile
+from .evidence_builder import build_evidence_rows
+from .evidence_export import export_evidence_tsv
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -38,6 +44,41 @@ def build_parser() -> argparse.ArgumentParser:
         help="Path to the evidence bundle directory.",
     )
 
+    build_parser = commands.add_parser(
+        "build",
+        help="Build an immutable technical evidence bundle.",
+        description=(
+            "Reconcile an assay manifest against a single-sample "
+            "VCF and indexed reference FASTA."
+        ),
+    )
+
+    build_parser.add_argument(
+        "--manifest",
+        required=True,
+        help="Path to the assay manifest.",
+    )
+    build_parser.add_argument(
+        "--vcf",
+        required=True,
+        help="Path to the single-sample VCF.",
+    )
+    build_parser.add_argument(
+        "--reference",
+        required=True,
+        help="Path to the indexed reference FASTA.",
+    )
+    build_parser.add_argument(
+        "--sample-id",
+        required=True,
+        help="Operator-supplied pseudonymous sample identifier.",
+    )
+    build_parser.add_argument(
+        "--output",
+        required=True,
+        help="New evidence bundle directory; must not exist.",
+    )
+
     return parser
 
 
@@ -45,6 +86,57 @@ def main(argv: Sequence[str] | None = None) -> int:
     """Execute the CLI and return a process exit code."""
     parser = build_parser()
     args = parser.parse_args(argv)
+
+    if args.command == "build":
+        from pathlib import Path
+
+        if not args.sample_id.strip():
+            print(
+                "ERROR: --sample-id must be non-empty.",
+                file=sys.stderr,
+            )
+            return 2
+
+        destination = Path(args.output)
+
+        if destination.exists() or destination.is_symlink():
+            print(
+                "FAIL: Evidence bundle destination already exists.",
+                file=sys.stderr,
+            )
+            return 1
+
+        try:
+            assays = list(read_assays(args.manifest))
+            records = list(read_vcf(args.vcf))
+
+            with PysamReferenceReader(args.reference) as reference:
+                results = reconcile(
+                    assays,
+                    records,
+                    reference=reference,
+                )
+
+            assay_rows, candidate_rows = build_evidence_rows(
+                args.sample_id,
+                results,
+            )
+
+            export_evidence_tsv(
+                args.output,
+                assay_rows,
+                candidate_rows,
+            )
+
+        except (OSError, ValueError, TypeError, KeyError):
+            print(
+                "FAIL: Evidence bundle construction failed.",
+                file=sys.stderr,
+            )
+            return 1
+
+        print("PASS: Evidence bundle constructed.")
+        return 0
 
     if args.command == "verify":
         result = verify_bundle(args.bundle)
