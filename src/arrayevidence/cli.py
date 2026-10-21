@@ -106,22 +106,32 @@ def main(argv: Sequence[str] | None = None) -> int:
             )
             return 1
 
+        stage = "BUILD_ERROR"
+
         try:
+            stage = "MANIFEST_READ_ERROR"
             assays = list(read_assays(args.manifest))
+
+            stage = "VCF_READ_ERROR"
             records = list(read_vcf(args.vcf))
 
+            stage = "REFERENCE_ERROR"
             with PysamReferenceReader(args.reference) as reference:
+                stage = "RECONCILIATION_ERROR"
                 results = reconcile(
                     assays,
                     records,
                     reference=reference,
                 )
+                stage = "REFERENCE_ERROR"
 
+            stage = "EVIDENCE_ERROR"
             assay_rows, candidate_rows = build_evidence_rows(
                 args.sample_id,
                 results,
             )
 
+            stage = "EXPORT_ERROR"
             export_evidence_tsv(
                 args.output,
                 assay_rows,
@@ -130,7 +140,7 @@ def main(argv: Sequence[str] | None = None) -> int:
 
         except Exception:
             print(
-                "FAIL: Evidence bundle construction failed.",
+                f"FAIL [{stage}]: Evidence bundle construction failed.",
                 file=sys.stderr,
             )
             return 1
