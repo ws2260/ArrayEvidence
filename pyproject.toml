@@ -7,6 +7,7 @@ name = "arrayevidence"
 version = "0.1.0"
 description = "Deterministic, assay-aware genotype-array interpretation"
 requires-python = ">=3.10"
+dependencies = ["pysam>=0.23,<0.24"]
 
 [project.scripts]
 arrayevidence = "arrayevidence.cli:main"
