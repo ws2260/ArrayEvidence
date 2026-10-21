@@ -144,3 +144,46 @@ def test_duplicate_records_not_discarded():
     assert len(result.records) == 2
     assert result.records[0].gt == "0/0"
     assert result.records[1].gt == "0/1"
+
+
+def test_multiallelic_candidate_preserves_alt_index():
+    """The matched ALT must be identified independently of the record."""
+    reference = SyntheticReference("ACGT")
+    candidate = record(
+        2, "C", ["CT", "CA"], gt="0/2"
+    )
+
+    index = IndelCandidateIndex([candidate], reference)
+
+    result = index.find(
+        SequenceEvent("1", 2, "", "A", "INSERTION")
+    )
+
+    assert result.status == "UNIQUE"
+    assert result.records == (candidate,)
+
+    # VCF ALT indices are 1-based; 0 denotes REF.
+    assert len(result.alleles) == 1
+    assert result.alleles[0].record == candidate
+    assert result.alleles[0].alt_index == 2
+
+
+def test_equivalent_alts_in_one_record_remain_distinct():
+    """Two matching ALTs are two allele candidates, not one."""
+    reference = SyntheticReference("ACGT")
+    candidate = record(
+        2, "C", ["CT", "CT"], gt="1/2"
+    )
+
+    index = IndelCandidateIndex([candidate], reference)
+
+    result = index.find(
+        SequenceEvent("1", 2, "", "T", "INSERTION")
+    )
+
+    assert result.status == "MULTIPLE"
+
+    assert result.records == (candidate, candidate)
+    assert tuple(
+        allele.alt_index for allele in result.alleles
+    ) == (1, 2)

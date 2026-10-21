@@ -74,9 +74,10 @@ The publication-track implementation currently includes:
 - Multiallelic genotype projection
 - Indel event reconstruction and normalization
 - Reference-normalized indel candidate discovery
+- Allele-aware indel reconciliation and genotype projection
 
-The next milestone is allele-aware indel reconciliation
-integration using test-driven development.
+The next milestone is a versioned technical evidence schema
+and structured evidence export, developed using test-driven development.
 
 A reconciled genotype is not automatically more accurate than
 the original call. Accuracy claims require independent validation.
@@ -94,6 +95,7 @@ the publication source repository.
 ## Documentation
 
 - [Architecture](docs/ARCHITECTURE.md)
+- [Technical evidence contract](docs/EVIDENCE_CONTRACT.md)
 - [Development roadmap](docs/ROADMAP.md)
 - [Data policy](docs/DATA_POLICY.md)
 - [ADR-0001: Indel candidate discovery](docs/decisions/0001-indel-candidate-discovery.md)

@@ -15,10 +15,19 @@ from .vcf import VCFRecord
 
 
 @dataclass(frozen=True)
+class IndelAlleleCandidate:
+    """One specific 1-based ALT allele in a VCF record."""
+
+    record: VCFRecord
+    alt_index: int
+
+
+@dataclass(frozen=True)
 class IndelCandidateResult:
     status: str
     reason: str
     records: tuple[VCFRecord, ...]
+    alleles: tuple[IndelAlleleCandidate, ...] = ()
 
 
 class IndelCandidateIndex:
@@ -33,14 +42,16 @@ class IndelCandidateIndex:
         self.skipped_alleles = 0
 
         for record in records:
-            for alt in record.alts:
+            for alt_index, alt in enumerate(record.alts, start=1):
                 event = self._validated_event(record, alt)
 
                 if event is None:
                     self.skipped_alleles += 1
                     continue
 
-                self._by_event[event].append(record)
+                self._by_event[event].append(
+                    IndelAlleleCandidate(record, alt_index)
+                )
                 self.indexed_alleles += 1
 
     def _validated_event(
@@ -120,8 +131,11 @@ class IndelCandidateIndex:
                 (),
             )
 
-        candidates = tuple(
+        alleles = tuple(
             self._by_event.get(normalized.event, ())
+        )
+        candidates = tuple(
+            allele.record for allele in alleles
         )
 
         if not candidates:
@@ -134,12 +148,14 @@ class IndelCandidateIndex:
         if len(candidates) == 1:
             return IndelCandidateResult(
                 "UNIQUE",
-                "ONE_EQUIVALENT_VCF_RECORD",
+                "ONE_EQUIVALENT_VCF_ALLELE",
                 candidates,
+                alleles,
             )
 
         return IndelCandidateResult(
             "MULTIPLE",
-            "MULTIPLE_EQUIVALENT_VCF_RECORDS",
+            "MULTIPLE_EQUIVALENT_VCF_ALLELES",
             candidates,
+            alleles,
         )
