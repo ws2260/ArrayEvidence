@@ -1,0 +1,67 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+build/
+dist/
+.venv/
+venv/
+.env
+.env.*
+
+# IDE and OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Genotype and sequencing data
+*.idat
+*.gtc
+*.vcf
+*.vcf.gz
+*.bcf
+*.bcf.gz
+*.bam
+*.cram
+*.fastq
+*.fastq.gz
+*.fq
+*.fq.gz
+*.bed
+*.bim
+*.fam
+*.pgen
+*.pvar
+*.psam
+*.h5ad
+*.h5
+*.hdf5
+
+# Reference and proprietary assay resources
+*.fa
+*.fasta
+*.fna
+*.fai
+*.bpm
+*.egt
+
+# Local data and analysis directories
+data/
+raw/
+results/
+outputs/
+scratch/
+local/
+secrets/
+
+# Local configuration
+*.local.yaml
+*.local.yml
+*.local.json
+*.local.toml
