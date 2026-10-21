@@ -128,7 +128,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 candidate_rows,
             )
 
-        except (OSError, ValueError, TypeError, KeyError):
+        except Exception:
             print(
                 "FAIL: Evidence bundle construction failed.",
                 file=sys.stderr,
