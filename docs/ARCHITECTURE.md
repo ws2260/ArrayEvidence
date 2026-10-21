@@ -135,9 +135,7 @@ Allele identity, genotype evidence, technical quality,
 clinical annotation, and interpretation must remain
 distinct evidence dimensions.
 
-The current Module 1 reconciliation field semantics are documented
-in [Technical Evidence Contract](EVIDENCE_CONTRACT.md).
-These internal results are not yet a versioned export schema.
+The current Module 1 reconciliation and versioned TSV export schema are documented in [Technical Evidence Contract](EVIDENCE_CONTRACT.md).
 
 ## Validation strategy
 

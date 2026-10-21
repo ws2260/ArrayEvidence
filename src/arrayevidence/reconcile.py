@@ -25,6 +25,14 @@ from .vcf import VCFRecord
 
 
 @dataclass(frozen=True)
+class AlleleSource:
+    """One reference-matched VCF ALT allele and its original record."""
+
+    record: VCFRecord
+    alt_index: int
+
+
+@dataclass(frozen=True)
 class ReconciliationResult:
     assay_id: str
     coordinate: tuple[str, int] | None
@@ -41,6 +49,7 @@ class ReconciliationResult:
     ploidy: int | None = None
     matched_alt_indices: tuple[int, ...] = ()
     indel_evidence: str = "NOT_EVALUATED"
+    allele_sources: tuple[AlleleSource, ...] = ()
 
 
 def reconcile(
@@ -83,6 +92,7 @@ def reconcile(
         ploidy = None
         matched_alt_indices = ()
         indel_evidence = "NOT_EVALUATED"
+        allele_sources = ()
 
         if coordinate is None:
             candidates = []
@@ -148,6 +158,12 @@ def reconcile(
                         allele_evidence = match.status
                         matched_alt_indices = match.matched_alt_indices
 
+                        if match.status == "PARTIAL_MATCH":
+                            allele_sources = tuple(
+                                AlleleSource(record, index)
+                                for index in match.matched_alt_indices
+                            )
+
                         allele_reason = (
                             validated.reason
                             if validated.status != "VALIDATED"
@@ -177,6 +193,9 @@ def reconcile(
                         )
 
                         allele_evidence = match.status
+
+                        if match.status == "MATCH":
+                            allele_sources = (AlleleSource(record, 1),)
 
                         allele_reason = (
                             validated.reason
@@ -227,6 +246,10 @@ def reconcile(
                     matched_alt_indices = tuple(
                         a.alt_index for a in candidate.alleles
                     )
+                    allele_sources = tuple(
+                        AlleleSource(a.record, a.alt_index)
+                        for a in candidate.alleles
+                    )
 
                     if candidate.status == "UNIQUE":
                         allele_evidence = "MATCH"
@@ -265,6 +288,7 @@ def reconcile(
                 ploidy=ploidy,
                 matched_alt_indices=matched_alt_indices,
                 indel_evidence=indel_evidence,
+                allele_sources=allele_sources,
             )
         )
 
