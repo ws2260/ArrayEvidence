@@ -11,6 +11,27 @@ ArrayEvidence starts downstream of genotype calling.
 DRAGEN Array and Illumina assay resources are not distributed
 with this repository.
 
+## Obtaining DRAGEN Array Local
+
+DRAGEN Array Local is available as a no-cost download
+from Illumina, but is not distributed with ArrayEvidence.
+
+- [Official DRAGEN Array downloads](https://support.illumina.com/array/array_software/dragen-array-secondary-analysis/downloads.html)
+- [Linux installer](https://support.illumina.com/downloads/dragen-array-linux-installer.html/)
+- [Installation guide](https://help.dragenarray.illumina.com/product-guides/dragen-array-local-analysis)
+
+Users must obtain the software through their MyIllumina
+account. The download page requires an Illumina instrument
+serial number to access the installer. Users who have not
+registered an instrument are prompted to enter its serial
+number. Contact Illumina Customer Care or Technical
+Support if access is unavailable.
+
+ArrayEvidence does not distribute or sublicense DRAGEN
+Array software or proprietary Illumina assay resources.
+The optional Nextflow workflow uses a separately installed,
+user-supplied DRAGEN Array executable.
+
 ## Tested environment
 
 - Platform: Linux executable under WSL
