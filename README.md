@@ -64,23 +64,96 @@ and explicitly scoped biomedical analyses.
 Selecting a module does not itself establish ethics, consent,
 or data-use authorization.
 
-## Current development status
+## Module 1 v0.1.0 — Implemented functionality
 
-The publication-track implementation currently includes:
+The standalone Module 1 release candidate provides:
 
-- Manifest and VCF parsing
-- Reference-aware allele validation
-- SNV and multiallelic reconciliation
-- Multiallelic genotype projection
-- Indel event reconstruction and normalization
-- Reference-normalized indel candidate discovery
-- Allele-aware indel reconciliation and genotype projection
+- Assay manifest and single-sample VCF parsing
+- Reference-aware SNV and indel allele reconciliation
+- Supported multiallelic SNV and validated indel genotype projection
+- Deterministic, immutable evidence-bundle export
+- Bundle integrity verification
+- Read-only aggregate technical QC
 
-The next milestone is a versioned technical evidence schema
-and structured evidence export, developed using test-driven development.
+The evidence bundle contains:
 
-A reconciled genotype is not automatically more accurate than
-the original call. Accuracy claims require independent validation.
+- `assay_evidence.tsv`
+- `allele_candidates.tsv`
+- `bundle_manifest.json`
+
+Module 1 starts downstream of genotype calling. It does not call
+genotypes from IDAT files.
+
+General-purpose genotype VCF/BCF export, imputation, sc-eQTL analysis,
+biomedical annotation, and clinical interpretation are not implemented
+in this release.
+
+## Installation
+
+Requires Python 3.10 or newer.
+
+From a clean clone, create a virtual environment and install:
+
+    python -m venv .venv
+    source .venv/bin/activate
+    python -m pip install -e .
+
+For synthetic regression tests:
+
+    python -m pip install pytest
+    python -m pytest -q
+
+The package requires `pysam>=0.23,<0.24`.
+
+## Command-line interface
+
+Build a new immutable evidence bundle:
+
+    arrayevidence build --manifest MANIFEST.csv --vcf SAMPLE.vcf --reference GRCh38.fa --sample-id PSEUDONYM --output NEW_BUNDLE
+
+The reference FASTA must have an existing compatible index.
+The output directory must not already exist.
+
+Verify an existing bundle:
+
+    arrayevidence verify NEW_BUNDLE
+
+Produce deterministic aggregate QC JSON:
+
+    arrayevidence qc NEW_BUNDLE
+
+The QC command reports aggregate evidence categories, not
+individual-level genotypes.
+
+## Interpretation limitations
+
+- `VCF_ABSENT` does not establish homozygous reference.
+- `NOT_EVALUATED` does not imply a negative genotype result.
+- Allele `MATCH` is not genotype concordance.
+- Ordinary biallelic SNV genotype projection is not evaluated.
+- Supported multiallelic SNV and validated indel scenarios have
+  more specific genotype-projection behavior.
+- Technical evidence does not establish clinical validity.
+
+## Technical validation
+
+Module 1 currently passes 373 synthetic regression tests.
+
+Technical integration validation covered 48 independently generated
+and verified AIDA evidence bundles:
+
+- 31,393,296 assay evidence rows
+- 31,013,136 allele candidate rows
+- 98.428% allele `MATCH` evidence
+- 97.844% `VCF_CALLED` coordinate evidence
+
+These are technical evidence distributions, not estimates of
+genotype accuracy or concordance against an independent truth set.
+
+See [AIDA technical validation](docs/aida_technical_validation.md).
+
+Qdenga vaccination-cohort data were not used to develop Module 1
+and are reserved for a subsequent independent application.
 
 ## Development and validation
 
