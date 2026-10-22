@@ -79,6 +79,20 @@ def build_parser() -> argparse.ArgumentParser:
         help="New evidence bundle directory; must not exist.",
     )
 
+    qc_parser = commands.add_parser(
+        "qc",
+        help="Summarize a verified evidence bundle.",
+        description=(
+            "Produce deterministic aggregate QC JSON "
+            "without modifying the evidence bundle."
+        ),
+    )
+
+    qc_parser.add_argument(
+        "bundle",
+        help="Path to the evidence bundle directory.",
+    )
+
     return parser
 
 
@@ -146,6 +160,22 @@ def main(argv: Sequence[str] | None = None) -> int:
             return 1
 
         print("PASS: Evidence bundle constructed.")
+        return 0
+
+    if args.command == "qc":
+        from . import qc
+
+        try:
+            summary = qc.summarize_bundle(args.bundle)
+            rendered = qc.render_qc_json(summary)
+        except Exception:
+            print(
+                "FAIL [QC_ERROR]: Evidence QC failed.",
+                file=sys.stderr,
+            )
+            return 1
+
+        sys.stdout.write(rendered)
         return 0
 
     if args.command == "verify":
