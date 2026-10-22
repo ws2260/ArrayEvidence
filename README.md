@@ -88,6 +88,12 @@ General-purpose genotype VCF/BCF export, imputation, sc-eQTL analysis,
 biomedical annotation, and clinical interpretation are not implemented
 in this release.
 
+## Recommended upstream genotype calling
+
+For original Illumina IDAT data, see the [Local DRAGEN Array IDAT-to-VCF vignette](docs/vignettes/dragen_array_from_idat.md).
+
+DRAGEN Array is separate software; ArrayEvidence starts downstream of genotype calling.
+
 ## Installation
 
 Requires Python 3.10 or newer.
