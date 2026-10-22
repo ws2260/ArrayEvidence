@@ -131,6 +131,22 @@ Produce deterministic aggregate QC JSON:
 The QC command reports aggregate evidence categories, not
 individual-level genotypes.
 
+## Optional Nextflow workflow
+
+`workflows/from_vcf.nf` runs BUILD, VERIFY, QC, and atomic staging from an existing assay manifest, single-sample VCF, and indexed FASTA.
+
+Required parameters: `--manifest`, `--vcf`, `--reference`, `--arrayevidence_bin`, and `--staging_dir`. Optional: `--sample_id` (default `PSEUDONYM_001`).
+
+Nextflow and Java are separate dependencies. Python 3 and the ArrayEvidence CLI must also be available to the workflow. Use `--python_bin /absolute/path/to/python3` to select the interpreter for staging reservation and finalization; the default is `python3`.
+
+The staging parent must exist; a fresh staging destination must not. Successful runs publish `validated/bundle` and `validated/qc.json` without overwriting an existing destination.
+
+Resume (`-resume SESSION_ID`) is permitted only for the same session while `validated` is absent. Completed sessions require a new staging destination.
+
+Atomic publication requires Linux `renameat2` and a compatible filesystem. It does not guarantee power-loss durability or protection against malicious concurrent filesystem modification.
+
+Run synthetic Nextflow tests with `ARRAYEVIDENCE_RUN_NEXTFLOW=1 python -m pytest -q`. The test runner currently expects a conda environment named `arrayevidence-nextflow` containing Nextflow.
+
 ## Interpretation limitations
 
 - `VCF_ABSENT` does not establish homozygous reference.
@@ -143,7 +159,7 @@ individual-level genotypes.
 
 ## Technical validation
 
-Module 1 currently passes 373 synthetic regression tests.
+Module 1 currently passes 402 automated tests (including opt-in Nextflow tests).
 
 Technical integration validation covered 48 independently generated
 and verified AIDA evidence bundles:

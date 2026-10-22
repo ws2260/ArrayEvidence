@@ -65,3 +65,8 @@ secrets/
 *.local.yml
 *.local.json
 *.local.toml
+
+# Nextflow execution artifacts
+.nextflow/
+.nextflow.log*
+work/

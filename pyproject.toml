@@ -19,5 +19,5 @@ where = ["src"]
 testpaths = ["tests"]
 
 markers = [
-    "integration: tests requiring authorized local datasets",
+    "integration: tests requiring external runtimes or authorized local datasets",
 ]
