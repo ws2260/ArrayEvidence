@@ -31,25 +31,28 @@ The standalone core provides:
 - SNV and indel allele matching
 - Multiallelic genotype projection
 - Technical QC and provenance
-- Policy-filtered genotype exports
+- Structured technical evidence tables
+- Bundle integrity verification
 
-Planned outputs include evidence tables, VCF/BCF, and QC reports.
+Module 1 produces technical evidence, not downstream genotype-format exports.
 
 Module 1 does not require clinical or disease annotation.
 
-### Module 2A — Genotype utility
+### Module 2A — Genotype utility (under consideration)
 
-Optional application-specific exports for:
+Potential genotype-format export capabilities, including VCF/BCF, for:
 
 - Single-cell donor demultiplexing
-- Genotype imputation
+- Preparation of inputs for external genotype imputation
 - sc-eQTL and genetic association analyses
 
-### Module 2B — Variant annotation
+These capabilities are not implemented or committed to a release.
+
+### Module 2B — Variant annotation (under consideration)
 
 Optional, authorization-dependent biomedical annotations.
 
-### Module 3 — Biomedical interpretation
+### Module 3 — Biomedical interpretation (under consideration)
 
 Optional phenotype-specific prioritization, evidence adjudication,
 and research-oriented reporting.
@@ -66,7 +69,7 @@ or data-use authorization.
 
 ## Module 1 v0.1.0 — Implemented functionality
 
-The standalone Module 1 release candidate provides:
+The released Module 1 v0.1.0 provides:
 
 - Assay manifest and single-sample VCF parsing
 - Reference-aware SNV and indel allele reconciliation
@@ -192,6 +195,8 @@ the publication source repository.
 - [Architecture](docs/ARCHITECTURE.md)
 - [Technical evidence contract](docs/EVIDENCE_CONTRACT.md)
 - [Development roadmap](docs/ROADMAP.md)
+- [Validation status](docs/VALIDATION_STATUS.md)
+- [Qdenga independent application](docs/qdenga_independent_application.md)
 - [Data policy](docs/DATA_POLICY.md)
 - [ADR-0001: Indel candidate discovery](docs/decisions/0001-indel-candidate-discovery.md)
 - [ADR-0002: Modular purpose-scoped pipeline](docs/decisions/0002-modular-purpose-scoped-pipeline.md)

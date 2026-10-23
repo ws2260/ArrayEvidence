@@ -43,22 +43,25 @@ Responsibilities:
 Standalone outputs:
 
 - Structured technical evidence table
-- Reconciled and policy-filtered VCF/BCF
 - Technical QC report
 - Machine-readable provenance
 
-A reconciled VCF is not automatically more accurate than the
-original genotype calls. Filtering and reconciliation must be
-supported by explicit evidence and validation.
+Module 1 establishes technical evidence and does not generate
+general-purpose genotype-format exports in v0.1.0.
+
+Any downstream VCF/BCF export must preserve source-call provenance,
+represent uncertainty explicitly, and undergo documented,
+purpose-appropriate validation.
 
 Module 1 must never require disease annotation.
 
 ## Module 2A: Genotype utility and export profiles
 
-Optional application-specific outputs:
+Potential genotype-format export capabilities under consideration:
 
+- General-purpose VCF/BCF under explicit export policies
 - Single-cell donor demultiplexing
-- Imputation preparation
+- Preparation of inputs for external genotype imputation
 - sc-eQTL and genetic association analysis
 - Other authorized population-genetic analyses
 

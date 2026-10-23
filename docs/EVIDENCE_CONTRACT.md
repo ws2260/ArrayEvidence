@@ -294,6 +294,11 @@ interpretation.
 
 ## Versioning and future changes
 
+This section documents the evolution of the TSV evidence contract.
+Some capabilities originally listed as potential additions, including
+bundle metadata and checksums, were subsequently implemented in
+Module 1 v0.1.0.
+
 The current external schema is `1.0.0`.
 
 Changes to field definitions, column order, missing-value
@@ -302,13 +307,14 @@ version review.
 
 Potential future additions include:
 
-- Machine-readable bundle metadata and checksums.
 - Reference assembly and resource provenance.
 - Additional assayability and technical QC evidence.
-- Reconciled VCF/BCF export under explicit policies.
+- Purpose-specific genotype-format exports, including VCF/BCF, through a separately validated Module 2A.
 - Optional purpose-scoped downstream module interfaces.
 
-These are not implemented by the current TSV export milestone.
+This list records historical development possibilities, not a
+commitment to implement them. Consult the release documentation
+for current capabilities.
 
 ## Immutable evidence bundle integrity and verification
 

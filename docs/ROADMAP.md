@@ -12,7 +12,7 @@ Updated: 2026-10-21
 - Normalized allele candidate discovery
 - Synthetic tests and AIDA development audits
 
-Current status: Indel candidate discovery checkpoint reached.
+Historical development milestone; Module 1 v0.1.0 has subsequently been released.
 
 ## Milestone 2: Allele-aware reconciliation integration
 
@@ -29,12 +29,13 @@ Development approach: Red-green-refactor TDD.
 
 - Versioned evidence schema
 - Technical QC
-- Export policies
-- Reconciled VCF/BCF
-- QC and provenance reports
+- Immutable evidence bundles
+- Bundle integrity verification
+- Technical QC and provenance reporting
 
-## Milestone 4: Downstream utility
+## Milestone 4: Downstream utility (under consideration)
 
+- General-purpose VCF/BCF export under explicit policies
 - Demultiplexing-ready export
 - Imputation-ready export
 - sc-eQTL/association-ready export
@@ -47,7 +48,7 @@ Development approach: Red-green-refactor TDD.
 - Quantify concordance, discordance, coverage,
   missingness, and limitations
 
-## Milestone 6: Optional biomedical extensions
+## Milestone 6: Optional biomedical extensions (under consideration)
 
 - Purpose-scoped variant annotation
 - Phenotype-specific prioritization
