@@ -114,22 +114,40 @@ For synthetic regression tests:
 
 The package requires `pysam>=0.23,<0.24`.
 
+Confirm that the CLI is available:
+
+    arrayevidence --help
+
+## Quick start
+
+ArrayEvidence starts from an existing single-sample genotype VCF,
+not directly from IDAT files. Prepare:
+
+- A compatible CSV assay manifest containing `SourceSeq`.
+- A single-sample VCF produced by upstream genotype calling.
+- A matching GRCh38 reference FASTA with its `.fai` index.
+
+See the [DRAGEN Array IDAT-to-VCF vignette](docs/vignettes/dragen_array_from_idat.md)
+for an example upstream workflow and resource requirements.
+
+Build, verify, and summarize an evidence bundle:
+
+    arrayevidence build --manifest MANIFEST.csv --vcf SAMPLE.vcf.gz --reference GRCh38.fa --sample-id PSEUDONYM --output NEW_BUNDLE
+    arrayevidence verify NEW_BUNDLE
+    arrayevidence qc NEW_BUNDLE
+
+Replace the example paths and pseudonym with appropriate values.
+`NEW_BUNDLE` must not already exist. The QC command writes
+deterministic aggregate JSON to standard output.
+
 ## Command-line interface
 
-Build a new immutable evidence bundle:
+The `build` command creates a new immutable evidence bundle.
+The reference FASTA must have an existing compatible index,
+and the output directory must not already exist.
 
-    arrayevidence build --manifest MANIFEST.csv --vcf SAMPLE.vcf --reference GRCh38.fa --sample-id PSEUDONYM --output NEW_BUNDLE
-
-The reference FASTA must have an existing compatible index.
-The output directory must not already exist.
-
-Verify an existing bundle:
-
-    arrayevidence verify NEW_BUNDLE
-
-Produce deterministic aggregate QC JSON to standard output:
-
-    arrayevidence qc NEW_BUNDLE
+The `verify` command checks an existing bundle without modifying it.
+The `qc` command produces deterministic aggregate JSON to standard output.
 
 On the development branch (planned for v0.1.1), write the same JSON to a new file:
 
