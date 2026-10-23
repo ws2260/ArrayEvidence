@@ -127,12 +127,24 @@ Verify an existing bundle:
 
     arrayevidence verify NEW_BUNDLE
 
-Produce deterministic aggregate QC JSON:
+Produce deterministic aggregate QC JSON to standard output:
 
     arrayevidence qc NEW_BUNDLE
 
+On the development branch (planned for v0.1.1), write the same JSON to a new file:
+
+    arrayevidence qc NEW_BUNDLE --output qc.json
+
 The QC command reports aggregate evidence categories, not
-individual-level genotypes.
+individual-level genotypes. The output file must not already exist
+and must be outside the evidence bundle. Successful file output
+is silent on standard output.
+
+File publication uses temporary-file creation followed by a hard
+link, requiring a filesystem that supports hard links. If temporary-file
+cleanup fails after publication, the command reports an error even
+though the JSON file may already exist. Output-path checks are not
+a security boundary against concurrent filesystem changes.
 
 ## Optional Nextflow workflow
 

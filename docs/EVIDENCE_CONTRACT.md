@@ -474,8 +474,11 @@ Verification is read-only. It does not repair files,
 reconcile variants, establish genotype correctness,
 authenticate the bundle, or authorize data redistribution.
 
-The public CLI currently supports verification only.
-Evidence construction and export remain Python API operations.
+The public CLI supports `build`, `verify`, and `qc`.
+The `qc` command summarizes a verified bundle without changing
+its evidence files. The unreleased v0.1.1 `qc --output` option writes a separate JSON
+report outside the bundle; it does not alter the bundle format,
+evidence schema, or verification contract.
 
 ### Compatibility and future versions
 

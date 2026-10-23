@@ -92,6 +92,10 @@ def build_parser() -> argparse.ArgumentParser:
         "bundle",
         help="Path to the evidence bundle directory.",
     )
+    qc_parser.add_argument(
+        "--output",
+        help="Write QC JSON to a new file instead of stdout.",
+    )
 
     return parser
 
@@ -175,7 +179,70 @@ def main(argv: Sequence[str] | None = None) -> int:
             )
             return 1
 
-        sys.stdout.write(rendered)
+        if args.output is None:
+            sys.stdout.write(rendered)
+            return 0
+
+        from pathlib import Path
+        import os
+        import tempfile
+
+        destination = Path(args.output)
+
+        try:
+            bundle_path = Path(args.bundle).resolve(strict=True)
+            output_path = destination.resolve(strict=False)
+
+            if output_path == bundle_path or bundle_path in output_path.parents:
+                raise ValueError("QC output must be outside the evidence bundle")
+        except (OSError, RuntimeError, ValueError):
+            print(
+                "FAIL [QC_OUTPUT_ERROR]: Evidence QC output failed.",
+                file=sys.stderr,
+            )
+            return 1
+
+        temporary = None
+        publication_failed = False
+        cleanup_failed = False
+
+        try:
+            with tempfile.NamedTemporaryFile(
+                mode="w",
+                encoding="utf-8",
+                newline="",
+                dir=destination.parent,
+                prefix=".arrayevidence-qc-",
+                suffix=".tmp",
+                delete=False,
+            ) as handle:
+                temporary = Path(handle.name)
+                handle.write(rendered)
+
+            os.link(temporary, destination)
+        except OSError:
+            publication_failed = True
+        finally:
+            if temporary is not None:
+                try:
+                    temporary.unlink(missing_ok=True)
+                except OSError:
+                    cleanup_failed = True
+
+        if publication_failed:
+            print(
+                "FAIL [QC_OUTPUT_ERROR]: Evidence QC output failed.",
+                file=sys.stderr,
+            )
+            return 1
+
+        if cleanup_failed:
+            print(
+                "FAIL [QC_OUTPUT_ERROR]: Evidence QC output cleanup failed.",
+                file=sys.stderr,
+            )
+            return 1
+
         return 0
 
     if args.command == "verify":
